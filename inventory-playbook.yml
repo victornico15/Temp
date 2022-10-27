@@ -1,0 +1,72 @@
+---
+- hosts: localhost
+
+  tasks:
+    - name: Tentativas
+      ansible.builtin.set_fact:
+        inventory: "{{ (lookup('ansible.builtin.template', '/root/repositorios/test.yaml')|from_yaml) }}"    
+
+    - name: template
+      ansible.builtin.set_fact:
+        inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: 
+      when:
+        - inventory.all.children.nodes.hosts.localhost is not defined                    
+
+
+
+    # - name: inserindo 
+    #   ansible.builtin.set_fact:      
+    #      inventory:
+    #       all:
+    #         children:
+    #           nodes:
+    #             hosts:
+    #               localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+    #                 {
+    #                    'nome' : 'hello' 
+    #                 }, 
+    #                   recursive=True) }}"
+    #   when:
+    #     - inventory.all.children.nodes.hosts.localhost.nome is not defined                      
+
+
+
+
+    - name: postgres
+      ansible.builtin.set_fact:      
+        inventory: "{{ inventory | combine(
+          {
+            'all' : {
+              'children': {
+                'nodes' :{
+                  'hosts' :{
+                    'localhost': {
+                      'nome': 'outracosia2'
+                    }        
+                  }
+                }
+              }
+            }
+          }, recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.nome==""  
+  
+
+
+    - name: Write variable to file
+      copy:
+        content: '{{inventory | to_nice_json }}'
+        dest: /root/repositorios/test.yaml
+      delegate_to: localhost
+                      
+
+
+    - name: teste
+      debug:
+        msg: "{{ inventory }}" 
+

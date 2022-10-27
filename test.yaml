@@ -1,0 +1,13 @@
+{
+    "all": {
+        "children": {
+            "nodes": {
+                "hosts": {
+                    "localhost": {
+                        "nome": "outracosia2"
+                    }
+                }
+            }
+        }
+    }
+}
