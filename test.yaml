@@ -1,13 +1,34 @@
-{
-    "all": {
-        "children": {
-            "nodes": {
-                "hosts": {
-                    "localhost": {
-                        "nome": "outracosia2"
-                    }
-                }
-            }
-        }
-    }
-}
+all:
+  children:
+    nodes:
+      hosts:
+        localhost:
+          app_server:
+            address: l
+          general:
+            introspection_secret: l
+          linux_korp:
+            password: l
+            user: l
+          minio:
+            acess_key: l
+            secret_key: l
+          mssql:
+            address: l
+            default_password: l
+            default_user: l
+            korp_password: l
+            korp_user: l
+          postgres:
+            address: l
+            default_password: l
+            default_user: l
+            korp_password: l
+            korp_user: l
+          rabbitmq:
+            korp_password: l
+            korp_user: l
+          redis:
+            password: l
+          self_signed_cert:
+            passphrase: l
