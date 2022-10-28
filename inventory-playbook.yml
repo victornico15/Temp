@@ -1,11 +1,15 @@
 ---
 - hosts: localhost
 
-  tasks:
+  tasks:  
       #importinventoryfile
     - name: ImportarInventario
       ansible.builtin.set_fact:
-        inventory: "{{ (lookup('ansible.builtin.template', '/home/vnesp/repositorios_Git/test.yaml')|from_yaml) }}"    
+        inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"
+
+    - name: caminhodoInventario
+      ansible.builtin.set_fact:
+        path_inventory: inventory.all.children.nodes.hosts.localhost
 
     - name: templateInventory
       ansible.builtin.set_fact:
@@ -17,7 +21,6 @@
                   localhost: 
       when:
         - inventory.all.children.nodes.hosts.localhost is not defined 
-
     - name: app_server
       ansible.builtin.set_fact:      
          inventory:
@@ -28,13 +31,10 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'app_server' : {
-                          'address' : ''                       
+                          'address' : path_inventory.app_server.addess | default ( address )                   
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.app_server is not defined 
-
     - name: linux_korp
       ansible.builtin.set_fact:      
          inventory:
@@ -44,15 +44,12 @@
                 hosts:
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
-                       'linux_korp' : {
-                        'user' : '',
-                        'password' : ''                                   
-                       }
+                     'linux_korp' : {
+                    'user' : path_inventory.linux_korp.user | default ( address ) ,
+                    'password' : path_inventory.linux_korp.password | default ( password )                                   
+                    }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.linux_korp is not defined  
-
     - name: self_signed_cert
       ansible.builtin.set_fact:      
          inventory:
@@ -63,13 +60,10 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'self_signed_cert' :{
-                        'passphrase' : ''                               
+                        'passphrase' : path_inventory.self_signed_cert.passphrase | default ( passphrase )                              
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.self_signed_cert is not defined 
-
     - name: mssql
       ansible.builtin.set_fact:      
          inventory:
@@ -80,17 +74,32 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'mssql' : {
-                         'address' : '', 
-                         'default_user' : '', 
-                         'default_password' : '', 
-                         'korp_user' : '', 
-                         'korp_password' : ''                    
+                         'address' : path_inventory.mssql.address | default ( address ), 
+                         'default_user' : path_inventory.mssql.default_user | default ( default_user ) , 
+                         'default_password' : path_inventory.mssql.default_password | default ( default_password) , 
+                         'korp_user' : path_inventory.mssql.korp_user | default (korp_user) , 
+                         'korp_password' : path_inventory.mssql.korp_password | default (korp_password)                   
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.mssql is not defined 
-
+    - name: testing_mssql
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'mssql' : {
+                         'address' : path_inventory.mssql.address | default ( address ), 
+                         'default_user' : path_inventory.mssql.default_user | default ( default_user ) , 
+                         'default_password' : path_inventory.mssql.default_password | default ( default_password) , 
+                         'korp_user' : path_inventory.mssql.korp_user | default (korp_user) , 
+                         'korp_password' : path_inventory.mssql.korp_password | default (korp_password)                   
+                       }
+                    }, 
+                      recursive=True) }}"                      
     - name: postgres
       ansible.builtin.set_fact:      
          inventory:
@@ -101,17 +110,14 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'postgres' : {
-                         'address' : '', 
-                         'default_user' : '', 
-                         'default_password' : '', 
-                         'korp_user' : '', 
-                         'korp_password' : ''                    
+                         'address' : path_inventory.postgres.address | default ( address ) , 
+                         'default_user' : path_inventory.postgres.default_user | default (  default_user ) , 
+                         'default_password' : path_inventory.postgres.default_password |  default (default_password), 
+                         'korp_user' : path_inventory.postgres.korp_user | default (korp_user), 
+                         'korp_password' : path_inventory.postgres.korp_password | default ( korp_password)                   
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.postgres is not defined 
-
     - name: rabbitmq
       ansible.builtin.set_fact:      
          inventory:
@@ -122,14 +128,11 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'rabbitmq' : {
-                         'korp_user' : '', 
-                         'korp_password' : ''                    
+                         'korp_user' : path_inventory.rabbitmq.korp_user | default (korp_user) , 
+                         'korp_password' : path_inventory.rabbitmq.korp_password | default ( korp_password)                    
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.rabbitmq is not defined         
-
     - name: redis
       ansible.builtin.set_fact:      
          inventory:
@@ -140,13 +143,10 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'redis' : {
-                          'password' : ''                       
+                          'password' : path_inventory.redis.password | default (password)                    
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.redis is not defined      
-
     - name: minio
       ansible.builtin.set_fact:      
          inventory:
@@ -157,14 +157,11 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                        'minio' : {
-                          'acess_key' : '',
-                          'secret_key' : ''                      
+                          'acess_key' : path_inventory.minio.acess_key | default (access_key) ,
+                          'secret_key' : path_inventory.minio.secret_key| default (secret_key)                     
                        }
                     }, 
                       recursive=True) }}"
-      when:
-        - inventory.all.children.nodes.hosts.localhost.minio is not defined   
-
     - name: general
       ansible.builtin.set_fact:      
         inventory:
@@ -175,18 +172,15 @@
                   localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                     {
                       'general' : {
-                          'introspection_secret' : ''                       
-                      }
+                          'introspection_secret' : path_inventory.general.introspection_secret | default (introspection_secret)       
+                       }
                     }, 
                       recursive=True) }}"
-      when:
-            - inventory.all.children.nodes.hosts.localhost.general is not defined  
-
       #Funcao de inserir a variavel no arquivo.
     - name: Write variable to file
       copy:
-        content: '{{inventory | to_nice_json }}'
-        dest: /home/vnesp/repositorios_Git/test.yaml
+        content: '{{inventory | to_nice_yaml(indent=2) }}'
+        dest: /etc/korp/ansible/inventory.yml
       delegate_to: localhost
       
     - name: teste
