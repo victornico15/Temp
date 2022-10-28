@@ -2,11 +2,12 @@
 - hosts: localhost
 
   tasks:
-    - name: Tentativas
+      #importinventoryfile
+    - name: ImportarInventario
       ansible.builtin.set_fact:
-        inventory: "{{ (lookup('ansible.builtin.template', '/root/repositorios/test.yaml')|from_yaml) }}"    
+        inventory: "{{ (lookup('ansible.builtin.template', '/home/vnesp/repositorios_Git/test.yaml')|from_yaml) }}"    
 
-    - name: template
+    - name: templateInventory
       ansible.builtin.set_fact:
         inventory:
           all:
@@ -15,57 +16,179 @@
                 hosts:
                   localhost: 
       when:
-        - inventory.all.children.nodes.hosts.localhost is not defined                    
+        - inventory.all.children.nodes.hosts.localhost is not defined 
 
+    - name: app_server
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'app_server' : {
+                          'address' : ''                       
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.app_server is not defined 
 
+    - name: linux_korp
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'linux_korp' : {
+                        'user' : '',
+                        'password' : ''                                   
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.linux_korp is not defined  
 
-    # - name: inserindo 
-    #   ansible.builtin.set_fact:      
-    #      inventory:
-    #       all:
-    #         children:
-    #           nodes:
-    #             hosts:
-    #               localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
-    #                 {
-    #                    'nome' : 'hello' 
-    #                 }, 
-    #                   recursive=True) }}"
-    #   when:
-    #     - inventory.all.children.nodes.hosts.localhost.nome is not defined                      
+    - name: self_signed_cert
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'self_signed_cert' :{
+                        'passphrase' : ''                               
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.self_signed_cert is not defined 
 
-
-
+    - name: mssql
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'mssql' : {
+                         'address' : '', 
+                         'default_user' : '', 
+                         'default_password' : '', 
+                         'korp_user' : '', 
+                         'korp_password' : ''                    
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.mssql is not defined 
 
     - name: postgres
       ansible.builtin.set_fact:      
-        inventory: "{{ inventory | combine(
-          {
-            'all' : {
-              'children': {
-                'nodes' :{
-                  'hosts' :{
-                    'localhost': {
-                      'nome': 'outracosia2'
-                    }        
-                  }
-                }
-              }
-            }
-          }, recursive=True) }}"
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'postgres' : {
+                         'address' : '', 
+                         'default_user' : '', 
+                         'default_password' : '', 
+                         'korp_user' : '', 
+                         'korp_password' : ''                    
+                       }
+                    }, 
+                      recursive=True) }}"
       when:
-        - inventory.all.children.nodes.hosts.localhost.nome==""  
-  
+        - inventory.all.children.nodes.hosts.localhost.postgres is not defined 
 
+    - name: rabbitmq
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'rabbitmq' : {
+                         'korp_user' : '', 
+                         'korp_password' : ''                    
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.rabbitmq is not defined         
 
+    - name: redis
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'redis' : {
+                          'password' : ''                       
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.redis is not defined      
+
+    - name: minio
+      ansible.builtin.set_fact:      
+         inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                       'minio' : {
+                          'acess_key' : '',
+                          'secret_key' : ''                      
+                       }
+                    }, 
+                      recursive=True) }}"
+      when:
+        - inventory.all.children.nodes.hosts.localhost.minio is not defined   
+
+    - name: general
+      ansible.builtin.set_fact:      
+        inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    {
+                      'general' : {
+                          'introspection_secret' : ''                       
+                      }
+                    }, 
+                      recursive=True) }}"
+      when:
+            - inventory.all.children.nodes.hosts.localhost.general is not defined  
+
+      #Funcao de inserir a variavel no arquivo.
     - name: Write variable to file
       copy:
         content: '{{inventory | to_nice_json }}'
-        dest: /root/repositorios/test.yaml
+        dest: /home/vnesp/repositorios_Git/test.yaml
       delegate_to: localhost
-                      
-
-
+      
     - name: teste
       debug:
         msg: "{{ inventory }}" 

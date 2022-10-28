@@ -4,7 +4,45 @@
             "nodes": {
                 "hosts": {
                     "localhost": {
-                        "nome": "outracosia2"
+                        "app_server": {
+                            "address": ""
+                        },
+                        "general": {
+                            "introspection_secret": ""
+                        },
+                        "linux_korp": {
+                            "password": "",
+                            "user": ""
+                        },
+                        "minio": {
+                            "acess_key": "",
+                            "secret_key": ""
+                        },
+                        "mssql": {
+                            "address": "",
+                            "default_password": "",
+                            "default_user": "",
+                            "korp_password": "",
+                            "korp_user": ""
+                        },
+                        "nome": "hello",
+                        "postgres": {
+                            "address": "",
+                            "default_password": "",
+                            "default_user": "",
+                            "korp_password": "",
+                            "korp_user": ""
+                        },
+                        "rabbitmq": {
+                            "korp_password": "",
+                            "korp_user": ""
+                        },
+                        "redis": {
+                            "password": ""
+                        },
+                        "self_signed_cert": {
+                            "passphrase": ""
+                        }
                     }
                 }
             }
