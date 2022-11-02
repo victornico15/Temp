@@ -1,0 +1,49 @@
+---
+- hosts: localhost
+  tasks:
+    # - name: Checagem se Possui dois SQL Server
+    #   ansible.builtin.pause:        
+    #     prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
+    #   register: Chk_sql
+
+    # - name: testing_sql_ip_whenChkEqualsN
+    #   ansible.builtin.set_fact:
+    #     testing_sql_ip: "{{ lookup('community.general.random_string', base64=True) }} "
+    #   when:   Chk_sql.user_input |upper == "N" 
+
+      
+
+    # - name: "Read a file content"
+    #   shell: |
+    #     cat /proc/sys/kernel/random/uuid
+    #   register: file_content
+    # - name: testing_sql_ip_whenChkEqualsN
+    #   ansible.builtin.set_fact:
+    #     testing_sql_ip: "{{ 1000 | random | to_uuid | upper  }}"     
+
+    - name : Sql_testing_pass
+      ansible.builtin.pause:        
+        prompt: "Senha do usuário do sql de Homologação: "  
+      register: testing_sql_ip    
+
+    - name :   set fact
+      ansible.builtin.set_fact:
+        testing_sql_ip: "{{  testing_sql_ip.user_input }}"
+        testing_sql_ip: "{{  testing_sql_ip.user_input }}"
+
+    
+
+
+
+    - name: teste
+      debug:
+        var: testing_sql_ip
+#        msg: "{{ mysqlip.user_input }}" 
+
+  #   - name : random UUID
+  #       gather_fact: no 
+  # vars:
+  #   introspection_secret : "{{ 1000 | random | to_uuid | upper  }}"
+  # - set_fact :
+  #       introspection_secret="{{ 1000 | random | to_uuid | upper  }}"
+  #     -debug var=introspection_secret
