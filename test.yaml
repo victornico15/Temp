@@ -4,31 +4,43 @@ all:
       hosts:
         localhost:
           app_server:
-            address: l
+            address: '12'
           general:
-            introspection_secret: l
+            introspection_secret: 940AE623-6B35-5B0F-AB06-C345C56F4BE7
           linux_korp:
-            password: l
-            user: l
+            password: c2xJUj1lIyg=
+            user: korp
           minio:
-            acess_key: l
-            secret_key: l
+            acess_key: OjBCXFlGXTs=
+            secret_key: XklgLiFjJEI=
           mssql:
-            address: l
-            default_password: l
-            default_user: l
-            korp_password: l
-            korp_user: l
+            address: '12'
+            default_password:
+              changed: false
+              skip_reason: Conditional result was False
+              skipped: true
+            default_user:
+              changed: false
+              skip_reason: Conditional result was False
+              skipped: true
+            korp_password: Q3E9WEc9Zyw=
+            korp_user: korp.services
           postgres:
-            address: l
-            default_password: l
-            default_user: l
-            korp_password: l
-            korp_user: l
+            address: 127.0.0.1
+            default_password: postgres
+            default_user: postgres
+            korp_password: WTtWOkhlRDA=
+            korp_user: korp.services
           rabbitmq:
-            korp_password: l
-            korp_user: l
+            korp_password: MDpNUWBAdDg=
+            korp_user: korp.services
           redis:
-            password: l
+            password: Z2o0UiZ9JSk=
           self_signed_cert:
-            passphrase: l
+            passphrase: korp
+          testing_mssql:
+            address: '2'
+            default_password: '4'
+            default_user: '3'
+            korp_password: Q3E9WEc9Zyw=
+            korp_user: korp.services

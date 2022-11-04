@@ -6,24 +6,21 @@
 
     - name: ImportarInventario
       ansible.builtin.set_fact:
-        inventory: "{{ (lookup('ansible.builtin.template', '/root/repositorios/test.yaml')|from_yaml) }}"
-
-    - name: caminhodoInventario
-      ansible.builtin.set_fact:
-        path_inventory: inventory.all.children.nodes.hosts.localhost      
+        inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"
 
     - name: Checagem se Possui dois SQL Server
       ansible.builtin.pause:        
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
       register: Chk_sql
-
-    - name: Dois SQL Producao, Homologacao
+      when:  inventory.all.children.nodes.hosts.localhost.mssql.address is not defined 
+      
+    - name: 2 SQL Producao, Homologacao
       block:
 
         - name : Sql_Producao_ip  
           ansible.builtin.pause:        
-            prompt: "IP de acesso do sql de Produção:"  
-          register: sql_ip           
+            prompt: "IP de acesso do sql de Produção: "  
+          register: sql_ip 
 
         - name : Sql_Producao_name
           ansible.builtin.pause:        
@@ -52,19 +49,22 @@
 
           #necessario para nao quebrar logica da funcao - name: testing_mssql
         - name : set_testing_sql_dependents
-          ansible.builtin.set_fact:
+          ansible.builtin.set_fact: 
+            sql_ips: "{{ sql_ip.user_input }}"  
+            sql_user: "{{ sql_user.user_input }}"
+            sql_pass: "{{ sql_pass.user_input }}"  
             testing_sql_ip: "{{  testing_sql_ip.user_input }}"
             testing_sql_user: "{{  testing_sql_user.user_input }}"
-            testing_sql_pass: "{{  testing_sql_pass.user_input }}"                                               
+            testing_sql_pass: "{{  testing_sql_pass.user_input }}"
           
-      when:   Chk_sql.user_input |upper == "S"  
+      when:  Chk_sql is not skipped  and Chk_sql.user_input |upper == "S"  
 
     - name: Somente um SQL Server 
       block:
 
-        - name : Sql_Producao_ip  
+        - name : Sql_server_Ip  
           ansible.builtin.pause:        
-            prompt: "IP do servidor de SQL Server: "  
+            prompt: "IP do servidor de SQL Server:"  
           register: sql_ip           
 
         - name : Sql_Producao_name
@@ -79,43 +79,37 @@
 
         - name: testing_sql_ip_whenChkEqualsN
           ansible.builtin.set_fact:
+            sql_ips: "{{ sql_ip.user_input }}"
+            sql_user: "{{ sql_user.user_input }}"
+            sql_pass: "{{ sql_pass.user_input }}"
             testing_sql_ip: "{{  sql_ip.user_input }}"   
+            testing_sql_user: "{{  sql_user.user_input }}" 
+            testing_sql_pass: "{{  sql_pass.user_input }}"  
 
-        - name: testing_sql_user_whenChkEqualsN
-          ansible.builtin.set_fact:
-            testing_sql_user: "{{  sql_user.user_input }}"  
+      when: Chk_sql is not skipped  and  Chk_sql.user_input |upper == "N"  
 
-        - name: testing_sql_pass_whenChkEqualsN
-          ansible.builtin.set_fact:
-            testing_sql_pass: "{{  sql_pass.user_input }}"   
-
-      when:   Chk_sql.user_input |upper == "N"  
-
-    
     - name : application_server_address
       ansible.builtin.pause:        
-        prompt: "Agora, informe o IP do Servidor de aplicações: (ou pressione enter para usar {{ sql_ip.user_input }} "  
+        prompt: "Agora, informe o IP do Servidor de aplicações: (ou pressione enter para usar {{ sql_ips }} ) "  
       register: application_server_address 
+      when: Chk_sql is not skipped
 
     - name : SetApplication_server_address
       ansible.builtin.set_fact:
         application_server_address: "{{ application_server_address.user_input }}"
-      when: application_server_address != ""   
+      when: Chk_sql is not skipped 
 
     - name : Application_Null_var
       ansible.builtin.set_fact:
-        application_server_address: "{{ sql_ip.user_input }}"
-      when: application_server_address == "" 
-      
+        application_server_address: "{{ sql_ips }}"        
+      when: Chk_sql is not skipped     
 
     #utiliza a mesma senha randomica   
     - name : Mssql_korp_password_stringRandom         
       ansible.builtin.set_fact:
          mssql_korp_passRandom : "{{ lookup('community.general.random_string', base64=True) }}"
-     
 
-
-    - name : inserindo Valores 
+    - name : Inserindo Template
       block:
       - name: templateInventory
         ansible.builtin.set_fact:
@@ -127,21 +121,26 @@
                     localhost: 
         when: inventory.all.children.nodes.hosts.localhost is not defined 
 
-      - name: app_server
+      - name: CaminhodoInventario
+        ansible.builtin.set_fact:
+          path_inventory: "{{ inventory.all.children.nodes.hosts.localhost }}"  
+
+      - name: App_server
         ansible.builtin.set_fact:      
           inventory:
             all:
               children:
                 nodes:
                   hosts:
-                    localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+                    localhost: "{{  inventory.all.children.nodes.hosts.localhost | combine(
                       {
                         'app_server' : { 
                             'address' : path_inventory.app_server.addess | default (application_server_address)                   
                         }
                       }, 
                         recursive=True) }}"
-      - name: linux_korp
+
+      - name: Linux_korp
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -152,11 +151,12 @@
                       {
                       'linux_korp' : {
                       'user' : path_inventory.linux_korp.user | default ('korp') ,
-                      'password' : path_inventory.linux_korp.password | default (lookup('community.general.random_string', base64=True))                                   
+                      'password' : path_inventory.linux_korp.password | default (lookup('community.general.random_string', base64=True))  
                       }
                       }, 
                         recursive=True) }}"
-      - name: self_signed_cert
+
+      - name: Self_signed_cert
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -166,12 +166,11 @@
                     localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                       {
                         'self_signed_cert' :{
-                          'passphrase' : path_inventory.self_signed_cert.passphrase | default ('korp')                              
+                          'passphrase' : path_inventory.self_signed_cert.passphrase | default ('korp')
                         }
                       }, 
-                        recursive=True) }}"
-
-      - name: mssql
+                        recursive=True, list_merge='keep') }}"
+      - name: Mssql
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -181,16 +180,16 @@
                     localhost: "{{ inventory.all.children.nodes.hosts.localhost | combine(
                       {
                         'mssql' : {
-                          'address' : path_inventory.mssql.address | default (sql_ip.user_input), 
-                          'default_user' : path_inventory.mssql.default_user | default (sql_user.user_input), 
-                          'default_password' : path_inventory.mssql.default_password | default (sql_pass.user_input), 
+                          'address' : path_inventory.mssql.address | default (sql_ips), 
+                          'default_user' : path_inventory.mssql.default_user | default (sql_user), 
+                          'default_password' : path_inventory.mssql.default_password | default (sql_pass), 
                           'korp_user' : path_inventory.mssql.korp_user | default ('korp.services'), 
                           'korp_password' : path_inventory.mssql.korp_password | default (mssql_korp_passRandom)                   
                         }
                       }, 
                         recursive=True) }}"
 
-      - name: testing_mssql
+      - name: Testing_mssql
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -207,8 +206,9 @@
                           'korp_password' : path_inventory.mssql.korp_password | default (mssql_korp_passRandom)                   
                         }
                       }, 
-                        recursive=True) }}"                         
-      - name: postgres
+                        recursive=True) }}"       
+
+      - name: Postgres
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -226,7 +226,8 @@
                         }
                       }, 
                         recursive=True) }}"
-      - name: rabbitmq
+
+      - name: Rabbitmq
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -241,7 +242,7 @@
                         }
                       }, 
                         recursive=True) }}"
-      - name: redis
+      - name: Redis
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -255,7 +256,8 @@
                         }
                       }, 
                         recursive=True) }}"
-      - name: minio
+                        
+      - name: Minio
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -270,7 +272,8 @@
                         }
                       }, 
                         recursive=True) }}"
-      - name: general
+
+      - name: General
         ansible.builtin.set_fact:      
           inventory:
             all:
@@ -284,14 +287,13 @@
                         }
                       }, 
                         recursive=True) }}"
+
         #Funcao de inserir a variavel no arquivo.
-      - name: Write variable to file
+      - name: Criando-ArquivoInventory
         copy:
           content: '{{inventory | to_nice_yaml(indent=2) }}'
-          dest: /root/repositorios/test.yaml
+          dest: /etc/korp/ansible/inventory.yml
         delegate_to: localhost
-        
-      - name: teste
-        debug:
-          msg: "{{ inventory }}" 
+
+
 
