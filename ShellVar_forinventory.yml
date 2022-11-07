@@ -13,7 +13,8 @@
 
       
 
-    # - name: "Read a file content"
+    # - name: "Read a file content"ls
+    
     #   shell: |
     #     cat /proc/sys/kernel/random/uuid
     #   register: file_content
