@@ -6,6 +6,10 @@
     - name: ImportarInventario
       ansible.builtin.set_fact:
         inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"
+    
+    - name: print 
+      debug:
+       msg: "{{ inventory }}"
      
 
     - name: Verificação de servidores de SQL Server
