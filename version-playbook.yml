@@ -1,11 +1,12 @@
 ---
 - hosts: localhost  
   connection: local
-  become: true
+  
   tasks:
+  
     - name: ImportarInventario
       ansible.builtin.set_fact:
-        inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"
+        inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"     
       become: true
 
     - name: print 
@@ -16,7 +17,7 @@
     - name: Verificação de servidores de SQL Server
       ansible.builtin.pause:
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
-        seconds: 60
+        seconds: 30
       register: Chk_sql
       when: inventory.all.children.nodes.hosts.localhost.mssql.address is not defined
 
