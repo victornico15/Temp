@@ -16,8 +16,8 @@
 
     - name: Verificação de servidores de SQL Server
       ansible.builtin.pause:
+        echo: no 
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
-        seconds: 30
       register: Chk_sql
       when: inventory.all.children.nodes.hosts.localhost.mssql.address is not defined
 
