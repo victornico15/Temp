@@ -10,8 +10,7 @@
 
     - name: print 
       debug:
-       msg: "{{ inventory }}"
-       become: true
+        msg: "{{ inventory }}"     
      
 
     - name: Verificação de servidores de SQL Server
