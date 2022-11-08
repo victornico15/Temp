@@ -16,7 +16,7 @@
 
     - name: Verificação de servidores de SQL Server
       ansible.builtin.pause:
-        echo: no 
+        seconds: 2 
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
       register: Chk_sql
       when: inventory.all.children.nodes.hosts.localhost.mssql.address is not defined
@@ -25,6 +25,7 @@
       block: #trata-se de um bloco para definir dois servidores SQL's 
         - name: Coleta de IP de acesso do SQL Server de Produção
           ansible.builtin.pause:
+            seconds: 2 
             prompt: "IP de acesso do sql de Produção: "
           register: sql_ip
 
@@ -35,11 +36,13 @@
 
         - name: Sql_Producao_pass
           ansible.builtin.pause:
+            seconds: 2 
             prompt: "Senha do usuário do sql de Produção: "
           register: sql_pass
 
         - name: Sql_testing_ip
           ansible.builtin.pause:
+            seconds: 2 
             prompt: "IP de acesso do sql de Homologação:"
           register: testing_sql_ip
 
