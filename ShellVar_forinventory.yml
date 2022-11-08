@@ -29,16 +29,15 @@
     #   register: testing_sql_ip    
 
 
-     
+    - name : testando 
+      ansible.builtin.set_fact:
+        valor: "seila"
+    
+    - name : julie 
+      ansible.builtin.set_fact:
+        aux2: "{{ valor }}"
+      when: valor == ""
 
-    - name: Encrypt stuff with Ansible-Vault
-      shell:
-        cmd: sudo mkdir -p /etc/korp/ansible/;echo "{{ testing_sql_ip }}" | sudo tee /etc/korp/ansible/.vault_key > /dev/null;sudo chown root:root /etc/korp/ansible/.vault_key;sudo chmod 444 /etc/korp/ansible/.vault_key;touch /etc/korp/ansible/inventory.yml;echo """[defaults]inventory = /etc/korp/ansible/inventory.yml""" | sudo tee /etc/ansible/ansible.cfg > /dev/null
-      
-    - name: encrypt
-      shell:
-        cmd: sudo ansible-vault encrypt /etc/korp/ansible/inventory.yml --vault-id /etc/korp/ansible/.vault_key
-       
         
     
 
@@ -46,7 +45,8 @@
 
     - name: teste
       debug:
-        var: testing_sql_ip
+        var: valor , aux2
+    
          
 
   #   - name : random UUID

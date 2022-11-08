@@ -17,8 +17,7 @@
       ansible.builtin.pause:
         seconds: 2 
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
-      register: Chk_sql
-      become: true
+      register: Chk_sql      
       when: inventory.all.children.nodes.hosts.localhost.mssql.address is not defined
 
     - name: Coleta de informações
