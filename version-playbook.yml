@@ -1,14 +1,12 @@
 ---
 - hosts: localhost  
-  connection: local
-  become: true
-  
-  tasks:
-  
+  connection: local  
+
+  tasks:  
     - name: ImportarInventario
       ansible.builtin.set_fact:
         inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"     
-      become: true
+      
 
     - name: print 
       debug:
@@ -30,6 +28,7 @@
           ansible.builtin.pause:
             seconds: 2 
             prompt: "IP de acesso do sql de Produção: "
+            become: true
           register: sql_ip
 
         - name: Sql_Producao_name
