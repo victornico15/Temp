@@ -31,13 +31,13 @@
       ansible.builtin.pause:
         prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
       register: Chk_sql
-      when: JHONSON is not skipped
+      
 
 
-    - name: Set and Fact
-      ansible.builtin.set_fact:
-          caralho: "{{ Chk_sql.user_input }}"
-      when: Chk_sql.skipped is false
+    # - name: Set and Fact
+    #   ansible.builtin.set_fact:
+    #       caralho: "{{ Chk_sql.user_input }}"
+    #   when: Chk_sql.skipped is false
   
      
      
@@ -49,7 +49,7 @@
       ansible.builtin.pause:
         prompt: "IP de acesso do sql de Produção: "
       register: sql_ip       # SOH É FEITO 
-      when: Chk_sql.skipped is false  # SE ISSO FOR VERDADE<<<< QUANDO O DE CIMA É SKIPADO 
+      when: Chk_sql.skipped is defined  # SE ISSO FOR VERDADE<<<< QUANDO O DE CIMA É SKIPADO 
         
     
 
@@ -58,7 +58,7 @@
     - name: teste
       debug:
         var: Chk_sql 
-        msg: "{{ caralho }}"
+
     
          
 
