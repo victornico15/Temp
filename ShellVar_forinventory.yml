@@ -18,26 +18,38 @@
     #   shell: |
     #     cat /proc/sys/kernel/random/uuid
     #   register: file_content
+    - name: khonson
+      ansible.builtin.pause:
+        prompt: "IP de acesso do sql de Produção: "
+      register: JHONSON   
+      when: false         # SOH É FEITO 
 
-    - name: testing_sql_ip_whenchkequalsn
+
+  
+
+    - name: Chk_sql
+      ansible.builtin.pause:
+        prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados  SQL? Exemplo : Homologação e  Produção? S - sim N - nao"
+      register: Chk_sql
+      when: JHONSON is not skipped
+
+
+    - name: Set and Fact
       ansible.builtin.set_fact:
-        testing_sql_ip: "{{ lookup('community.general.random_string') }}"  
-
-    # - name : Sql_testing_pass
-    #   ansible.builtin.pause:        
-    #     prompt: "Senha do usuário do sql de Homologação: "  
-    #   register: testing_sql_ip    
-
-
-    - name : testando 
-      ansible.builtin.set_fact:
-        valor: "seila"
+          caralho: "{{ Chk_sql.user_input }}"
+      when: Chk_sql.skipped is false
+  
+     
+     
     
-    - name : julie 
-      ansible.builtin.set_fact:
-        aux2: "{{ valor }}"
-      when: valor == ""
 
+
+     
+    - name: sql_ip 
+      ansible.builtin.pause:
+        prompt: "IP de acesso do sql de Produção: "
+      register: sql_ip       # SOH É FEITO 
+      when: Chk_sql.skipped is false  # SE ISSO FOR VERDADE<<<< QUANDO O DE CIMA É SKIPADO 
         
     
 
@@ -45,7 +57,8 @@
 
     - name: teste
       debug:
-        var: valor , aux2
+        var: Chk_sql 
+        msg: "{{ caralho }}"
     
          
 
