@@ -1,46 +1,191 @@
-all:
-  children:
-    nodes:
-      hosts:
-        localhost:
-          app_server:
-            address: '12'
-          general:
-            introspection_secret: 940AE623-6B35-5B0F-AB06-C345C56F4BE7
-          linux_korp:
-            password: c2xJUj1lIyg=
-            user: korp
-          minio:
-            acess_key: OjBCXFlGXTs=
-            secret_key: XklgLiFjJEI=
-          mssql:
-            address: '12'
-            default_password:
-              changed: false
-              skip_reason: Conditional result was False
-              skipped: true
-            default_user:
-              changed: false
-              skip_reason: Conditional result was False
-              skipped: true
-            korp_password: Q3E9WEc9Zyw=
-            korp_user: korp.services
-          postgres:
-            address: 127.0.0.1
-            default_password: postgres
-            default_user: postgres
-            korp_password: WTtWOkhlRDA=
-            korp_user: korp.services
-          rabbitmq:
-            korp_password: MDpNUWBAdDg=
-            korp_user: korp.services
-          redis:
-            password: Z2o0UiZ9JSk=
-          self_signed_cert:
-            passphrase: korp
-          testing_mssql:
-            address: '2'
-            default_password: '4'
-            default_user: '3'
-            korp_password: Q3E9WEc9Zyw=
-            korp_user: korp.services
+---
+- hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: ImportarInventario
+      ansible.builtin.set_fact:
+        inventory: "{{ (lookup('ansible.builtin.template', '/etc/korp/ansible/inventory.yml')|from_yaml) }}"
+        become: true
+        
+    - name: Verificação de servidores de SQL Server
+      ansible.builtin.pause:
+        prompt: "Para continuar a instalação, digite as seguintes informações sobre o servidor SQL Server: Possui 2 banco de dados SQL? Exemplo : Homologação e Produção? S - sim N - nao"
+      register: Chk_sql
+      when: inventory.all.children.nodes.hosts.localhost.mssql.address is not defined
+
+    - name: Coleta de informações
+      block: #trata-se de um bloco para definir dois servidores SQL's 
+        - name: Coleta de IP de acesso do SQL Server de Produção
+          ansible.builtin.pause:
+            prompt: "IP de acesso do sql de Produção: "
+          register: sql_ip
+
+        - name: Sql_Producao_name
+          ansible.builtin.pause:
+            prompt: "Usuário com permissões administrativas do sql de Produção: "
+          register: sql_user
+
+        - name: Sql_Producao_pass
+          ansible.builtin.pause:
+            prompt: "Senha do usuário do sql de Produção: "
+          register: sql_pass
+
+        - name: Sql_testing_ip
+          ansible.builtin.pause:
+            prompt: "IP de acesso do sql de Homologação:"
+          register: testing_sql_ip
+
+        - name: Sql_testing_name
+          ansible.builtin.pause:
+            prompt: "Usuário com permissões administrativas do sql de Homologação: "
+          register: testing_sql_user
+
+        - name: Sql_testing_pass
+          ansible.builtin.pause:
+            prompt: "Senha do usuário do sql de Homologação: "
+          register: testing_sql_pass
+
+          #necessario para nao quebrar logica da funcao - name: testing_mssql
+          #Definição de variáveis do inventário
+        - name: set_testing_sql_dependents
+          ansible.builtin.set_fact: 
+            sql_ips: "{{ sql_ip.user_input }}"
+            sql_users: "{{ sql_user.user_input }}"
+            sql_passs: "{{ sql_pass.user_input }}"
+            testing_sql_ip: "{{ testing_sql_ip.user_input }}"
+            testing_sql_user: "{{ testing_sql_user.user_input }}"
+            testing_sql_pass: "{{ testing_sql_pass.user_input }}"      
+
+
+      when: Chk_sql.skipped is not defined and Chk_sql.user_input |upper == "S"
+
+    - name: Somente um SQL Server
+      block: #bloco criado para criar apenas um servidor SQL
+        - name: Sql_server_Ip
+          ansible.builtin.pause:
+            prompt: "Verificação de servidor de SQL Server: "
+          register: sql_ip
+
+        - name: Sql_Producao_name
+          ansible.builtin.pause:
+            prompt: "Usuário com permissões administrativas servidor de SQL Server: "
+          register: sql_user
+
+        - name: Sql_Producao_pass
+          ansible.builtin.pause:
+            prompt: "Senha do usuário servidor de SQL Server:"
+          register: sql_pass
+
+        - name: testing_sql_ip_whenChkEqualsN
+          ansible.builtin.set_fact:
+            sql_ips: "{{ sql_ip.user_input }}"
+            sql_users: "{{ sql_user.user_input }}"
+            sql_passs: "{{ sql_pass.user_input }}"
+            testing_sql_ip: "{{ sql_ip.user_input }}"
+            testing_sql_user: "{{ sql_user.user_input }}"
+            testing_sql_pass: "{{ sql_pass.user_input }}"
+
+      when: Chk_sql.skipped is not defined and Chk_sql.user_input |upper == "N"
+
+    - name: Configurando application Server
+      block: #bloco criado para configurar application Server
+        - name: application_server_address
+          ansible.builtin.pause:
+            prompt: "Agora, informe o IP do Servidor de aplicações: (ou pressione enter para usar {{ sql_ips }} ) "
+          register: application_server_address
+
+        - name: SetApplicationServerAddress
+          ansible.builtin.set_fact:
+            application_server_address: "{{ application_server_address.user_input }}"
+
+        - name: Application_null_var
+          ansible.builtin.set_fact:
+            application_server_address: "{{ sql_ips }}"
+          when: application_server_address == ""
+
+      when: Chk_sql.skipped is not defined
+
+    #utiliza a mesma senha randomica
+    - name: Mssql_korp_password_stringRandom
+      ansible.builtin.set_fact:
+        mssql_korp_passRandom: "{{ lookup('community.general.random_string', special=False) }}"
+      when: Chk_sql.skipped is not defined
+
+    - name: Inserção de template
+      block:
+        - name: templateInventory
+          ansible.builtin.set_fact:
+            inventory:
+              all:
+                children:
+                  nodes:
+                    hosts:
+                      localhost:
+          when: inventory.all.children.nodes.hosts.localhost is not defined
+
+        - name: Definicao do atalho caminho inventario
+          ansible.builtin.set_fact:
+            shrink_inventory: "{{ inventory.all.children.nodes.hosts.localhost }}"
+            
+
+    - name: Criação De inventario
+      ansible.builtin.set_fact:
+        shrink_inventory: "{{ inventory.all.children.nodes.hosts.localhost | combine(
+          {
+            'app_server' : {
+              'address' : shrink_inventory.app_server.address | default ( application_server_address )
+            },
+            'linux_korp' : {
+              'user' : shrink_inventory.linux_korp.user | default ('korp') ,
+              'password' : shrink_inventory.linux_korp.password | default (lookup('community.general.random_string', special=False))
+            },
+            'self_signed_cert' :{
+              'passphrase' : shrink_inventory.self_signed_cert.passphrase | default ('korp')
+            },
+            'mssql' : {
+              'address' : shrink_inventory.mssql.address | default (sql_ips),
+              'default_user' : shrink_inventory.mssql.default_user | default (sql_users),
+              'default_password' : shrink_inventory.mssql.default_password | default (sql_passs),
+              'korp_user' : shrink_inventory.mssql.korp_user | default ('korp.services'),
+              'korp_password' : shrink_inventory.mssql.korp_password | default (mssql_korp_passRandom)
+            },
+            'testing_mssql' : {
+                'address' : shrink_inventory.mssql.address | default (testing_sql_ip) ,
+                'default_user' : shrink_inventory.mssql.default_user | default (testing_sql_user),
+                'default_password' : shrink_inventory.mssql.default_password | default (testing_sql_pass),
+                'korp_user' : shrink_inventory.mssql.korp_user | default ('korp.services'),
+                'korp_password' : shrink_inventory.mssql.korp_password | default (mssql_korp_passRandom)
+            }, 
+              'rabbitmq' : {
+                'korp_user' : shrink_inventory.rabbitmq.korp_user | default ('korp.services') ,
+                'korp_password' : shrink_inventory.rabbitmq.korp_password | default (lookup('community.general.random_string', special=False))
+            }, 
+              'redis' : {
+                'password' : shrink_inventory.redis.password | default (lookup('community.general.random_string', special=False))
+            },
+              'minio' : {
+                'access_key' : shrink_inventory.minio.access_key | default (lookup('community.general.random_string', special=False)) ,
+                'secret_key' : shrink_inventory.minio.secret_key| default (lookup('community.general.random_string', special=False))
+            },
+            'general' : {
+              'introspection_secret' : shrink_inventory.general.introspection_secret | default ( 1000 | random | to_uuid | upper )
+            }
+          }, recursive=True) }}"
+
+    - name: Converting Shrink
+      ansible.builtin.set_fact:
+        inventory:
+          all:
+            children:
+              nodes:
+                hosts:
+                  localhost: "{{ shrink_inventory }}"
+
+      #Funcao de inserir a variavel no arquivo.
+    - name: Deploy arquivo inventory na pasta
+      copy:
+        content: "{{inventory | to_nice_yaml(indent=2) }}"
+        dest: /etc/korp/ansible/inventory.yml
+        mode: '0644'
+      delegate_to: localhost
