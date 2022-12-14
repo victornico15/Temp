@@ -1,0 +1,11 @@
+ 
+---
+- hosts: localhost  
+
+  tasks:  
+ 
+  - name: Mapeamento de discos livres
+    ansible.builtin.set_fact:
+      free_disks: "{{ free_disks | union([item]) }}"
+    when: ansible_devices[item].partitions | list | length==0
+    with_items: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list  }}"
