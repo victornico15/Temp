@@ -2,7 +2,8 @@
 - hosts: localhost  
 
   vars:
-    free_disks: true
+    USE_SERVERGC : true
+    korp_data_memory_minimum_size: 20
 
   tasks:  
 
@@ -15,11 +16,11 @@
     #   debug:
     #     msg: "{{(ansible_facts.memtotal_mb /1024 | int  )}}"        
 
-    - name: Mapeamento de discos livres
+    - name: Identificando quantidade minima de memoria
       ansible.builtin.set_fact:
-        free_disks: false
-      when: (ansible_facts.memtotal_mb /1024 | int) < 12
+        USE_SERVERGC : false
+      when: (ansible_facts.memtotal_mb /1024 | int) < korp_data_memory_minimum_size
 
     - name: print
       debug:
-        msg: "{{free_disks}}"
+        msg: "{{USE_SERVERGC}}"
