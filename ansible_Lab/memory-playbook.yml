@@ -4,7 +4,7 @@
 
   vars:
     USE_SERVERGC : true
-
+    korp_data_memory_minimum_size: 2
   tasks:  
 
 
@@ -23,7 +23,7 @@
 
     - name: print
       debug:
-        msg: "{{free_disks}}"
+        msg: "{{USE_SERVERGC}}"
 
 
 
